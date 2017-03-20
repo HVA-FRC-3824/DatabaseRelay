@@ -18,7 +18,9 @@ import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Set;
@@ -92,6 +94,22 @@ public class Home extends AppCompatActivity {
         else
         {
             Database.getInstance().setSocket(mSocket);;
+        }
+
+        try {
+            Process process = Runtime.getRuntime().exec("logcat -d");
+            BufferedReader bufferedReader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream()));
+
+            StringBuilder log = new StringBuilder();
+            String line = "";
+            while ((line = bufferedReader.readLine()) != null) {
+                log.append(line);
+            }
+            TextView tv = (TextView)findViewById(R.id.log);
+            tv.setText(log.toString());
+        } catch (IOException e) {
+            // Handle Exception
         }
     }
 

@@ -21,6 +21,7 @@ public class TeamMatchData {
     public int alliance_number;
     public String scout_name;
     public int total_points;
+    public long last_modified;
 
     // Autonomous
     public String auto_start_position;

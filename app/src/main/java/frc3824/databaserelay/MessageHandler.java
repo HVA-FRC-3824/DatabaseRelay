@@ -1,10 +1,10 @@
 package frc3824.databaserelay;
 
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,13 +18,10 @@ class MessageHandler extends Handler{
 
     private final static String TAG = "MessageHandler";
 
-    private Gson mGson;
-    private Database mDatabase;
     private SocketThread mSocket;
 
-    public MessageHandler(SocketThread socketThread) {
-        mGson = new GsonBuilder().create();
-        mDatabase = Database.getInstance();
+    public MessageHandler(Looper looper, SocketThread socketThread) {
+        super(looper);
         mSocket = socketThread;
     }
 
@@ -48,13 +45,14 @@ class MessageHandler extends Handler{
                 break;
             case Constants.Comms.Message_Type.DATA_RECEIVED:
                 String message = new String((byte[]) msg.obj);
+                displayText(message);
                 try {
                     JSONObject json = new JSONObject(message);
                     if(json.has("message_type")) {
                         switch (json.getString("message_type")){
                             // Heartbeat
                             case "ping":
-                                mSocket.write("pong");
+                                mSocket.write("{\"message_type\": \"pong\"}");
                                 break;
                         }
                     }
@@ -66,10 +64,10 @@ class MessageHandler extends Handler{
     }
 
     public void displayText(String message){
-
+        Log.i(TAG, message);
     }
 
     public void displayText(String message, String color){
-
+        Log.i(TAG, message);
     }
 }

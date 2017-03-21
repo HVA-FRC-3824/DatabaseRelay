@@ -5,10 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,15 +27,20 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Set;
 
-public class Home extends AppCompatActivity {
+public class Home extends Activity {
+
+    private static final String TAG = "Home";
 
     private String mEventKey;
     private SocketThread mSocket;
+    private TextView mConnected;
+    private TextView mDisconnected;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        Database.getInstance();
 
         ((TextView)findViewById(R.id.version)).setText(String.format("Version: %s", Constants.VERSION));
 
@@ -43,15 +50,10 @@ public class Home extends AppCompatActivity {
         mEventKey = sp.getString(Constants.EVENT_KEY, "");
         event_key.setText(mEventKey);
 
-        Socket socket = null;
-        try {
-            socket = new Socket("localhost", Constants.PORT);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        mConnected = (TextView)findViewById(R.id.socket_connected);
+        mDisconnected = (TextView)findViewById(R.id.socket_disconnected);
 
-        mSocket = new SocketThread(socket);
-        mSocket.start();
+        new GetSocketTask().execute();
 
         event_key.addTextChangedListener(new TextWatcher() {
             @Override
@@ -87,30 +89,20 @@ public class Home extends AppCompatActivity {
 
         setupUi(this, findViewById(android.R.id.content));
 
-        // Setup the database or reload it (to make the schedule and button list work)
-        if(mEventKey != "") {
-            Database.getInstance(mEventKey).setSocket(mSocket);;
-        }
-        else
-        {
-            Database.getInstance().setSocket(mSocket);;
-        }
-
-        try {
-            Process process = Runtime.getRuntime().exec("logcat -d");
-            BufferedReader bufferedReader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()));
-
-            StringBuilder log = new StringBuilder();
-            String line = "";
-            while ((line = bufferedReader.readLine()) != null) {
-                log.append(line);
+        findViewById(R.id.log).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Home.this, LogcatViewer.class);
+                startActivity(intent);
             }
-            TextView tv = (TextView)findViewById(R.id.log);
-            tv.setText(log.toString());
-        } catch (IOException e) {
-            // Handle Exception
-        }
+        });
+
+        findViewById(R.id.socket).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new GetSocketTask().execute();
+            }
+        });
     }
 
     public static void setupUi(final Activity activity, View view) {
@@ -139,6 +131,42 @@ public class Home extends AppCompatActivity {
         if(activity.getCurrentFocus() != null) {
             InputMethodManager imm = (InputMethodManager)activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
+        }
+    }
+
+    private class GetSocketTask extends AsyncTask<Void, Void, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            try {
+                if(mSocket != null){
+                    mSocket.cancel();
+                    mSocket = null;
+                }
+
+                Socket socket = new Socket("localhost", Constants.PORT);
+                mSocket = new SocketThread(socket);
+                mSocket.start();
+
+                // Setup the database or reload it (to make the schedule and button list work)
+                if (!mEventKey.isEmpty()) {
+                    Database.getInstance(mEventKey).setSocket(mSocket);
+                } else {
+                    Database.getInstance().setSocket(mSocket);
+                }
+                Log.i(TAG, "Socket success");
+                return true;
+            } catch(IOException e) {
+                Log.e(TAG, "Socket error");
+            }
+            return false;
+        }
+
+        protected void onPostExecute(Boolean result) {
+            if(result){
+                mConnected.setVisibility(View.VISIBLE);
+                mDisconnected.setVisibility(View.GONE);
+            }
         }
     }
 }

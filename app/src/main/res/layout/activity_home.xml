@@ -3,7 +3,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="8dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -48,15 +49,42 @@
 
     <AutoCompleteTextView
         android:id="@+id/event"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="@color/black"
-        android:textSize="20sp"/>
+        android:textSize="20sp" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/log"
+        android:text="Log"
+        android:textSize="20sp"
+        android:textColor="@color/black"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/socket"
+        android:textSize="20sp"
+        android:textColor="@color/black"
+        android:text="Socket"/>
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:id="@+id/log"/>
+        android:layout_height="wrap_content"
+        android:textColor="@color/bright_green"
+        android:text="Socket Connected"
+        android:textSize="15sp"
+        android:id="@+id/socket_connected"
+        android:visibility="gone"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/bright_red"
+        android:text="Socket Disconnected"
+        android:textSize="15sp"
+        android:id="@+id/socket_disconnected"/>
 
 </LinearLayout>

@@ -1,5 +1,6 @@
 package frc3824.databaserelay;
 
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
@@ -25,21 +26,23 @@ public class SocketThread extends Thread {
     private OutputStream mOutputStream;
     private int mState;
     private MessageHandler mHandler;
-    private boolean mMessageReceived;
     private boolean running;
 
     public SocketThread(Socket socket){
         Log.d(TAG, "create SocketThread");
+
         mSocket = socket;
         if(Looper.myLooper() == null) {
             Looper.prepare();
         }
-        mHandler = new MessageHandler(this);
+        HandlerThread ht = new HandlerThread("MessageHandlerThread");
+        ht.start();
+        mHandler = new MessageHandler(ht.getLooper(), this);
 
         InputStream tmpIn = null;
         OutputStream tmpOut = null;
 
-        // Get the BluetoothSocket input and output streams
+        // Get the input and output streams
         try {
             tmpIn = socket.getInputStream();
             tmpOut = socket.getOutputStream();
@@ -47,7 +50,6 @@ public class SocketThread extends Thread {
             Log.e(TAG, "temp sockets not created", e);
         }
 
-        mMessageReceived = false;
         mInputStream = tmpIn;
         mOutputStream = tmpOut;
         mState = Constants.Comms.RECEIVING;
@@ -83,7 +85,7 @@ public class SocketThread extends Thread {
                                     waitingForHeader = false;
                                 } else {
                                     Log.e(TAG, "Did not receive correct header.  Closing socket");
-                                    mSocket.close();
+                                    //mSocket.close();
                                     mHandler.sendEmptyMessage(Constants.Comms.Message_Type.INVALID_HEADER);
                                     break;
                                 }
@@ -106,6 +108,7 @@ public class SocketThread extends Thread {
                     // check the integrity of the data
                     byte[] data = dataOutputStream.toByteArray();
 
+
                     if (digestMatch(data, digest)) {
                         Log.v(TAG, "Digest matches OK.");
                         Message message = new Message();
@@ -116,11 +119,12 @@ public class SocketThread extends Thread {
                         // Send the digest back to the client as a confirmation
                         Log.v(TAG, "Sending back digest for confirmation");
                         mOutputStream.write(digest);
-                        mMessageReceived = true;
+                        mOutputStream.flush();
                     } else {
                         Log.e(TAG, "Digest did not match.  Corrupt transfer?");
                         mHandler.sendEmptyMessage(Constants.Comms.Message_Type.DIGEST_DID_NOT_MATCH);
                         mOutputStream.write(digest);
+                        mOutputStream.flush();
                     }
 
                 }
@@ -131,10 +135,6 @@ public class SocketThread extends Thread {
             cancel();
         }
         Log.i(TAG, "END SocketThread");
-    }
-
-    public boolean messageReceived(){
-        return mMessageReceived;
     }
 
     public void cancel() {
@@ -152,6 +152,7 @@ public class SocketThread extends Thread {
             Log.e(TAG, "close() of socket failed", e);
         }
     }
+
 
     /**
      * Write to the connected OutStream.

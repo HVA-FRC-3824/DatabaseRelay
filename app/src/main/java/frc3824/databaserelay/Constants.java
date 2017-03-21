@@ -18,33 +18,17 @@ public interface Constants {
     String EVENT_KEY = "event_key";
     String APP_DATA = "appData";
 
-    int PORT = 38240;
-
     interface Comms{
-        int SENDING = 0;
-        int RECEIVING = 1;
 
-        int CHUNK_SIZE = 4192;
-        int HEADER_MSB = 0x10;
-        int HEADER_LSB = 0x55;
+        String HOST = "localhost";
+        int PORT = 38240;
+
+        int CONNECTOR_SLEEP = 100;
+        int HEARTBEAT_THRESHOLD = 800;
+        int SEND_HEARTBEAT_PERIOD = 100;
 
         interface Message_Type {
-            int DATA_SENT_OK = 0x00;
-            int DATA_RECEIVED = 0x02;
-            int SENDING_DATA = 0x04;
-
-            int DIGEST_DID_NOT_MATCH = 0x50;
-            int COULD_NOT_CONNECT = 0x51;
-            int INVALID_HEADER = 0x52;
+            String HEARTBEAT = "heartbeat";
         }
-    }
-
-    interface Server_Log_Colors {
-        String RED = "red";
-        String BLUE = "blue";
-        String BLACK = "black";
-        String GREEN = "green";
-        String YELLOW = "yellow";
-        String WHITE = "white";
     }
 }

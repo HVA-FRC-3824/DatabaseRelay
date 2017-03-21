@@ -1,5 +1,6 @@
 package frc3824.databaserelay;
 
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.google.firebase.database.ChildEventListener;
@@ -9,13 +10,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.gson.JsonObject;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-import frc3824.databaserelay.DataModels.MatchPilotData;
-import frc3824.databaserelay.DataModels.SuperMatchData;
-
-import frc3824.databaserelay.DataModels.TeamMatchData;
+import frc3824.databaserelay.Comms.MessageBase;
+import frc3824.databaserelay.Comms.ServerConnection;
 
 
 /**
@@ -39,12 +39,9 @@ public class Database {
     //endregion
 
     private static Set<String> mEvents;
-
     private String mEventKey;
 
-    private SocketThread mSocket;
-
-    private static Database mSingleton;
+    private static Database mSingleton = null;
 
     public static Database getInstance(String eventKey) {
         if (mSingleton == null) {
@@ -114,23 +111,48 @@ public class Database {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Log.v(TAG, "partial_match.onChildAdded: " + dataSnapshot.getKey());
-                TeamMatchData tmd = dataSnapshot.getValue(TeamMatchData.class);
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("update_type", "match");
-                jsonObject.addProperty("match_number", tmd.match_number);
-                jsonObject.addProperty("team_number", tmd.team_number);
-                mSocket.write(jsonObject.getAsString());
+                final int match_number = dataSnapshot.child("match_number").getValue(Integer.class);
+                final int team_number = dataSnapshot.child("team_number").getValue(Integer.class);
+
+                MessageBase message = new MessageBase() {
+                    @Override
+                    public String getType() {
+                        return "pilot";
+                    }
+
+                    @Override
+                    public String getMessage() {
+                        return "{\"match_number\": " + match_number + ",\"team_number\": " + team_number +"}";
+                    }
+                };
+                try {
+                    ServerConnection.getInstance().send(message);
+                } catch (Exception e){
+                    e.getMessage();
+                }
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 Log.v(TAG, "partial_match.onChildChanged: " + dataSnapshot.getKey());
-                TeamMatchData tmd = dataSnapshot.getValue(TeamMatchData.class);
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("update_type", "match");
-                jsonObject.addProperty("match_number", tmd.match_number);
-                jsonObject.addProperty("team_number", tmd.team_number);
-                mSocket.write(jsonObject.getAsString());
+                final int match_number = dataSnapshot.child("match_number").getValue(Integer.class);
+                final int team_number = dataSnapshot.child("team_number").getValue(Integer.class);
+                MessageBase message = new MessageBase() {
+                    @Override
+                    public String getType() {
+                        return "pilot";
+                    }
+
+                    @Override
+                    public String getMessage() {
+                        return "{\"match_number\": " + match_number + ",\"team_number\": " + team_number +"}";
+                    }
+                };
+                try {
+                    ServerConnection.getInstance().send(message);
+                } catch (Exception e){
+                    e.getMessage();
+                }
             }
 
             @Override
@@ -156,21 +178,45 @@ public class Database {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Log.v(TAG, "super_match.onChildAdded: " + dataSnapshot.getKey());
-                SuperMatchData smd = dataSnapshot.getValue(SuperMatchData.class);
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("update_type", "super");
-                jsonObject.addProperty("match_number", smd.match_number);
-                mSocket.write(jsonObject.getAsString());
+                final int match_number = dataSnapshot.child("match_number").getValue(Integer.class);
+                MessageBase message = new MessageBase() {
+                    @Override
+                    public String getType() {
+                        return "super";
+                    }
+
+                    @Override
+                    public String getMessage() {
+                        return "{\"match_number\": " + match_number + "}";
+                    }
+                };
+                try {
+                    ServerConnection.getInstance().send(message);
+                } catch (Exception e){
+                    e.getMessage();
+                }
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 Log.v(TAG, "super_match.onChildChanged: " + dataSnapshot.getKey());
-                SuperMatchData smd = dataSnapshot.getValue(SuperMatchData.class);
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("update_type", "super");
-                jsonObject.addProperty("match_number", smd.match_number);
-                mSocket.write(jsonObject.getAsString());
+                final int match_number = dataSnapshot.child("match_number").getValue(Integer.class);
+                MessageBase message = new MessageBase() {
+                    @Override
+                    public String getType() {
+                        return "super";
+                    }
+
+                    @Override
+                    public String getMessage() {
+                        return "{\"match_number\": " + match_number + "}";
+                    }
+                };
+                try {
+                    ServerConnection.getInstance().send(message);
+                } catch (Exception e){
+                    e.getMessage();
+                }
             }
 
             @Override
@@ -196,23 +242,47 @@ public class Database {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Log.v(TAG, "pilot.match.onChildAdded: " + dataSnapshot.getKey());
-                MatchPilotData mpd = dataSnapshot.getValue(MatchPilotData.class);
+                final int match_number = dataSnapshot.child("match_number").getValue(Integer.class);
 
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("update_type", "pilot");
-                jsonObject.addProperty("match_number", mpd.match_number);
-                mSocket.write(jsonObject.getAsString());
+                MessageBase message = new MessageBase() {
+                    @Override
+                    public String getType() {
+                        return "pilot";
+                    }
+
+                    @Override
+                    public String getMessage() {
+                        return "{\"match_number\": " + match_number + "}";
+                    }
+                };
+                try {
+                    ServerConnection.getInstance().send(message);
+                } catch (Exception e){
+                    e.getMessage();
+                }
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 Log.v(TAG, "pilot.match.onChildChanged: " + dataSnapshot.getKey());
-                MatchPilotData mpd = dataSnapshot.getValue(MatchPilotData.class);
+                final int match_number = dataSnapshot.child("match_number").getValue(Integer.class);
 
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("update_type", "pilot");
-                jsonObject.addProperty("match_number", mpd.match_number);
-                mSocket.write(jsonObject.getAsString());
+                MessageBase message = new MessageBase() {
+                    @Override
+                    public String getType() {
+                        return "pilot";
+                    }
+
+                    @Override
+                    public String getMessage() {
+                        return "{\"match_number\": " + match_number + "}";
+                    }
+                };
+                try {
+                    ServerConnection.getInstance().send(message);
+                } catch (Exception e){
+                    e.getMessage();
+                }
             }
 
             @Override
@@ -239,10 +309,4 @@ public class Database {
     public static Set<String> getEvents() {
         return mEvents;
     }
-
-    public void setSocket(SocketThread socket) {
-        mSocket = socket;
-        setEventKey(mEventKey);
-    }
-
 }

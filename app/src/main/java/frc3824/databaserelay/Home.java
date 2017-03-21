@@ -1,40 +1,60 @@
 package frc3824.databaserelay;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.ScaleAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Set;
 
-public class Home extends Activity {
+import frc3824.databaserelay.Comms.ServerConnectionStateListener;
+import frc3824.databaserelay.Comms.ServerConnectionStatusBroadcastReceiver;
+
+public class Home extends Activity implements ServerConnectionStateListener {
 
     private static final String TAG = "Home";
 
     private String mEventKey;
-    private SocketThread mSocket;
-    private TextView mConnected;
-    private TextView mDisconnected;
+    private boolean mIsRunning;
+    private View mConnectionStateView;
+    private ServerConnectionStatusBroadcastReceiver mSbr;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mIsRunning = true;
+        Log.i(TAG, "onStart");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.i(TAG, "onRestart");
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,11 +69,6 @@ public class Home extends Activity {
         final SharedPreferences sp = getSharedPreferences(Constants.APP_DATA, Context.MODE_PRIVATE);
         mEventKey = sp.getString(Constants.EVENT_KEY, "");
         event_key.setText(mEventKey);
-
-        mConnected = (TextView)findViewById(R.id.socket_connected);
-        mDisconnected = (TextView)findViewById(R.id.socket_disconnected);
-
-        new GetSocketTask().execute();
 
         event_key.addTextChangedListener(new TextWatcher() {
             @Override
@@ -89,20 +104,30 @@ public class Home extends Activity {
 
         setupUi(this, findViewById(android.R.id.content));
 
-        findViewById(R.id.log).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(Home.this, LogcatViewer.class);
-                startActivity(intent);
-            }
-        });
+        mConnectionStateView = findViewById(R.id.connection_state);
+        mSbr = new ServerConnectionStatusBroadcastReceiver(this, this);
 
-        findViewById(R.id.socket).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new GetSocketTask().execute();
-            }
-        });
+        Log.i(TAG, "onCreate");
+    }
+
+    @Override
+    protected void onPause() {
+        Log.i(TAG, "onPause");
+        mIsRunning = false;
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        Log.i(TAG, "onResume ");
+        super.onResume();
+        mIsRunning = true;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mSbr);
     }
 
     public static void setupUi(final Activity activity, View view) {
@@ -134,39 +159,42 @@ public class Home extends Activity {
         }
     }
 
-    private class GetSocketTask extends AsyncTask<Void, Void, Boolean> {
+    public void startBadConnectionAnimation() {
+        Animation animation = new ScaleAnimation(1, 1, 1, 20, Animation.RELATIVE_TO_SELF, 0, Animation.RELATIVE_TO_SELF, 0);
+        animation.setDuration(200);
+        animation.setInterpolator(new LinearInterpolator());
+        animation.setRepeatCount(Animation.INFINITE);
+        animation.setRepeatMode(Animation.REVERSE);
+        mConnectionStateView.startAnimation(animation);
+    }
 
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            try {
-                if(mSocket != null){
-                    mSocket.cancel();
-                    mSocket = null;
-                }
+    public void stopBadConnectionAnimation() {
+        mConnectionStateView.clearAnimation();
+    }
 
-                Socket socket = new Socket("localhost", Constants.PORT);
-                mSocket = new SocketThread(socket);
-                mSocket.start();
+    @Override
+    public void serverConnected() {
+        Log.i(TAG, "Robot Connected");
+        mConnectionStateView.setBackgroundColor(ContextCompat.getColor(this, R.color.bright_green));
+        stopBadConnectionAnimation();
+    }
 
-                // Setup the database or reload it (to make the schedule and button list work)
-                if (!mEventKey.isEmpty()) {
-                    Database.getInstance(mEventKey).setSocket(mSocket);
-                } else {
-                    Database.getInstance().setSocket(mSocket);
-                }
-                Log.i(TAG, "Socket success");
-                return true;
-            } catch(IOException e) {
-                Log.e(TAG, "Socket error");
+    @Override
+    public void serverDisconnected() {
+        mConnectionStateView.setBackgroundColor(ContextCompat.getColor(this, R.color.bright_red));
+        startBadConnectionAnimation();
+        playAirhorn();
+    }
+
+    public void playAirhorn() {
+        MediaPlayer mp = MediaPlayer.create(this, R.raw.airhorn);
+        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                mp.reset();
+                mp.release();
             }
-            return false;
-        }
-
-        protected void onPostExecute(Boolean result) {
-            if(result){
-                mConnected.setVisibility(View.VISIBLE);
-                mDisconnected.setVisibility(View.GONE);
-            }
-        }
+        });
+        mp.start();
     }
 }

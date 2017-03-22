@@ -1,5 +1,9 @@
 package frc3824.databaserelay.Comms;
 
+import com.google.gson.JsonObject;
+
+import org.json.JSONObject;
+
 import frc3824.databaserelay.Constants;
 
 /**
@@ -24,7 +28,7 @@ public class HeartbeatMessage extends MessageBase{
     }
 
     @Override
-    public String getMessage() {
-        return "{}";
+    public JSONObject getData() {
+        return new JSONObject();
     }
 }

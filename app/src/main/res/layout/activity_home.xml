@@ -12,8 +12,8 @@
 
         <ImageView
             android:id="@+id/logo"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
             android:layout_gravity="center_vertical"
             android:contentDescription="Logo for the app"
             android:src="@drawable/logo" />
@@ -25,7 +25,7 @@
             android:layout_gravity="center"
             android:layout_marginBottom="15dp"
             android:layout_toRightOf="@id/logo"
-            android:text="RoHAWKtics \nPilot Rater"
+            android:text="RoHAWKtics\nDatabase\nRelay"
             android:textColor="@color/navy_blue"
             android:textSize="36dp" />
 
@@ -53,6 +53,14 @@
         android:layout_height="wrap_content"
         android:textColor="@color/black"
         android:textSize="20sp" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/restart"
+        android:text="Restart"
+        android:textSize="20sp"
+        android:textColor="@color/black"/>
 
 
     <View

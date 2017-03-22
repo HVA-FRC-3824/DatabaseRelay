@@ -23,9 +23,9 @@ public interface Constants {
         String HOST = "localhost";
         int PORT = 38240;
 
-        int CONNECTOR_SLEEP = 100;
-        int HEARTBEAT_THRESHOLD = 800;
-        int SEND_HEARTBEAT_PERIOD = 100;
+        int CONNECTOR_SLEEP = 100; // 1 second
+        int HEARTBEAT_THRESHOLD = 5 * 1000; // 5 second
+        int SEND_HEARTBEAT_PERIOD = 10 * 60 * 1000; // 10 minutes
 
         interface Message_Type {
             String HEARTBEAT = "heartbeat";

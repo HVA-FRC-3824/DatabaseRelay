@@ -11,14 +11,14 @@ import org.json.JSONObject;
 public class OffWireMessage extends MessageBase {
 
     private String mType;
-    private String mMessage = "{}";
+    private JSONObject mData = new JSONObject();
     private boolean mValid = false;
 
     public OffWireMessage(String message) {
         try {
             JSONObject reader = new JSONObject(message);
             mType = reader.getString("type");
-            mMessage = reader.getString("message");
+            mData = reader.getJSONObject("data");
             mValid = true;
         } catch (JSONException e) {
             e.printStackTrace();
@@ -35,7 +35,7 @@ public class OffWireMessage extends MessageBase {
     }
 
     @Override
-    public String getMessage() {
-        return mMessage;
+    public JSONObject getData() {
+        return mData;
     }
 }

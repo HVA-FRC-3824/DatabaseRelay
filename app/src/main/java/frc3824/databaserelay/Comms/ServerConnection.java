@@ -17,7 +17,7 @@ import frc3824.databaserelay.Constants;
 
 /**
  * @author frc3824
- *         Created: 3/20/17
+ * Created: 3/20/17
  */
 
 public class ServerConnection {
@@ -34,7 +34,7 @@ public class ServerConnection {
     volatile private Socket m_socket;
     private Thread m_connect_thread, m_read_thread, m_write_thread;
 
-    private long m_last_heartbeat_sent_at = System.currentTimeMillis();
+    private long m_last_heartbeat_sent_at = 0;
     private long m_last_heartbeat_rcvd_at = 0;
 
     private ArrayBlockingQueue<MessageBase> mToSend = new ArrayBlockingQueue<>(30);
@@ -70,10 +70,11 @@ public class ServerConnection {
             switch (message.getType()){
                 case Constants.Comms.Message_Type.HEARTBEAT:
                     m_last_heartbeat_rcvd_at = System.currentTimeMillis();
+                    Log.i(TAG, "Heartbeat");
                     break;
             }
 
-            Log.w(TAG, message.getType() + " " + message.getMessage());
+            Log.w(TAG, message.getType() + " " + message.getData().toString());
         }
 
         @Override
@@ -84,10 +85,10 @@ public class ServerConnection {
                     InputStream is = m_socket.getInputStream();
                     reader = new BufferedReader(new InputStreamReader(is));
                 } catch (IOException e) {
-                    Log.e("ReadThread", "Could not get input stream");
+                    Log.e(TAG, "Could not get input stream");
                     continue;
                 } catch (NullPointerException npe) {
-                    Log.e("ReadThread", "socket was null");
+                    Log.e(TAG, "socket was null", npe);
                     continue;
                 }
                 String json_message = null;
@@ -96,9 +97,9 @@ public class ServerConnection {
                 } catch (IOException e) {
                 }
                 if (json_message != null) {
-                    OffWireMessage parsedMessage = new OffWireMessage(json_message);
-                    if (parsedMessage.isValid()) {
-                        handleMessage(parsedMessage);
+                    OffWireMessage parsed_message = new OffWireMessage(json_message);
+                    if (parsed_message.isValid()) {
+                        handleMessage(parsed_message);
                     }
                 } else {
                     try {
@@ -111,6 +112,8 @@ public class ServerConnection {
     }
 
     protected class ConnectionMonitor implements Runnable {
+        private static final String TAG = "ConnectionMonitor";
+
         @Override
         public void run() {
             while (m_running) {
@@ -122,18 +125,24 @@ public class ServerConnection {
 
                     long now = System.currentTimeMillis();
 
+                    //Log.i(TAG, String.format("Now: %d Sent: %d Received: %d\n", now, m_last_heartbeat_sent_at, m_last_heartbeat_rcvd_at));
+
                     if (now - m_last_heartbeat_sent_at > Constants.Comms.SEND_HEARTBEAT_PERIOD) {
                         send(HeartbeatMessage.getInstance());
                         m_last_heartbeat_sent_at = now;
                     }
 
-                    if (Math.abs(m_last_heartbeat_rcvd_at - m_last_heartbeat_sent_at) > Constants.Comms.HEARTBEAT_THRESHOLD && m_connected) {
-                        m_connected = false;
-                        broadcastRobotDisconnected();
-                    }
-                    if (Math.abs(m_last_heartbeat_rcvd_at - m_last_heartbeat_sent_at) < Constants.Comms.HEARTBEAT_THRESHOLD && !m_connected) {
+                    long recv_send_delay = m_last_heartbeat_rcvd_at - m_last_heartbeat_sent_at;
+                    long time_delay = now - m_last_heartbeat_sent_at;
+
+                    if(recv_send_delay >= 0 && !m_connected){
+                        // Rcvd after send
                         m_connected = true;
-                        broadcastRobotConnected();
+                        broadcastServerConnected();
+                    } else if(recv_send_delay < 0 && time_delay > Constants.Comms.HEARTBEAT_THRESHOLD && m_connected) {
+                        // Send after Rcvd
+                        m_connected = false;
+                        broadcastServerDisconnected();
                     }
 
                     Thread.sleep(Constants.Comms.CONNECTOR_SLEEP, 0);
@@ -249,10 +258,12 @@ public class ServerConnection {
                 os.write(toSend.getBytes());
                 return true;
             } catch (IOException e) {
-                Log.w("RobotConnection", "Could not send data to socket, try to reconnect");
+                Log.w(TAG, "Could not send data to socket, try to reconnect");
                 m_socket = null;
             }
         }
+        // add back to the queue if send fails
+        send(message);
         return false;
     }
 
@@ -260,12 +271,12 @@ public class ServerConnection {
         return mToSend.offer(message);
     }
 
-    public void broadcastRobotConnected() {
+    public void broadcastServerConnected() {
         Intent i = new Intent(ServerConnectionStatusBroadcastReceiver.ACTION_SERVER_CONNECTED);
         m_context.sendBroadcast(i);
     }
 
-    public void broadcastRobotDisconnected() {
+    public void broadcastServerDisconnected() {
         Intent i = new Intent(ServerConnectionStatusBroadcastReceiver.ACTION_SERVER_DISCONNECTED);
         m_context.sendBroadcast(i);
     }

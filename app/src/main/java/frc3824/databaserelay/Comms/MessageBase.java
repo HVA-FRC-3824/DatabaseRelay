@@ -12,17 +12,19 @@ import org.json.JSONObject;
 
 public abstract class MessageBase {
 
+    private static final String TAG = "MessageBase";
+
     public abstract String getType();
 
-    public abstract String getMessage();
+    public abstract JSONObject getData();
 
     public String toJson() {
         JSONObject j = new JSONObject();
         try {
             j.put("type", getType());
-            j.put("message", getMessage());
+            j.put("data", getData());
         } catch (JSONException e) {
-            Log.e("MessageBase", "Could not encode JSON");
+            Log.e(TAG, "Could not encode JSON");
         }
         return j.toString();
     }

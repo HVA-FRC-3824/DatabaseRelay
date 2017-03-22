@@ -10,6 +10,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.gson.JsonObject;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -99,7 +102,7 @@ public class Database {
     }
 
     private void setEventKey(String eventKey) {
-        if (eventKey == "" || mEventKey == eventKey)
+        if (eventKey.isEmpty() || mEventKey == eventKey)
             return;
 
         mEventRef = mRootRef.child(eventKey);
@@ -111,18 +114,28 @@ public class Database {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Log.v(TAG, "partial_match.onChildAdded: " + dataSnapshot.getKey());
+                if(dataSnapshot.getKey().equals("scout_names")){
+                    return;
+                }
                 final int match_number = dataSnapshot.child("match_number").getValue(Integer.class);
                 final int team_number = dataSnapshot.child("team_number").getValue(Integer.class);
 
                 MessageBase message = new MessageBase() {
                     @Override
                     public String getType() {
-                        return "pilot";
+                        return "match";
                     }
 
                     @Override
-                    public String getMessage() {
-                        return "{\"match_number\": " + match_number + ",\"team_number\": " + team_number +"}";
+                    public JSONObject getData() {
+                        JSONObject o = new JSONObject();
+                        try {
+                            o.put("match_number", match_number);
+                            o.put("team_number", team_number);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        return o;
                     }
                 };
                 try {
@@ -135,17 +148,27 @@ public class Database {
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 Log.v(TAG, "partial_match.onChildChanged: " + dataSnapshot.getKey());
+                if(dataSnapshot.getKey().equals("scout_names")){
+                    return;
+                }
                 final int match_number = dataSnapshot.child("match_number").getValue(Integer.class);
                 final int team_number = dataSnapshot.child("team_number").getValue(Integer.class);
                 MessageBase message = new MessageBase() {
                     @Override
                     public String getType() {
-                        return "pilot";
+                        return "match";
                     }
 
                     @Override
-                    public String getMessage() {
-                        return "{\"match_number\": " + match_number + ",\"team_number\": " + team_number +"}";
+                    public JSONObject getData() {
+                        JSONObject o = new JSONObject();
+                        try {
+                            o.put("match_number", match_number);
+                            o.put("team_number", team_number);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        return o;
                     }
                 };
                 try {
@@ -186,8 +209,14 @@ public class Database {
                     }
 
                     @Override
-                    public String getMessage() {
-                        return "{\"match_number\": " + match_number + "}";
+                    public JSONObject getData() {
+                        JSONObject o = new JSONObject();
+                        try {
+                            o.put("match_number", match_number);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        return o;
                     }
                 };
                 try {
@@ -208,8 +237,14 @@ public class Database {
                     }
 
                     @Override
-                    public String getMessage() {
-                        return "{\"match_number\": " + match_number + "}";
+                    public JSONObject getData() {
+                        JSONObject o = new JSONObject();
+                        try {
+                            o.put("match_number", match_number);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        return o;
                     }
                 };
                 try {
@@ -251,8 +286,14 @@ public class Database {
                     }
 
                     @Override
-                    public String getMessage() {
-                        return "{\"match_number\": " + match_number + "}";
+                    public JSONObject getData() {
+                        JSONObject o = new JSONObject();
+                        try {
+                            o.put("match_number", match_number);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        return o;
                     }
                 };
                 try {
@@ -274,8 +315,14 @@ public class Database {
                     }
 
                     @Override
-                    public String getMessage() {
-                        return "{\"match_number\": " + match_number + "}";
+                    public JSONObject getData() {
+                        JSONObject o = new JSONObject();
+                        try {
+                            o.put("match_number", match_number);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        return o;
                     }
                 };
                 try {

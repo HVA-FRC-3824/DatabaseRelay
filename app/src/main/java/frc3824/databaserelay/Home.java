@@ -39,14 +39,12 @@ public class Home extends Activity implements ServerConnectionStateListener {
     private static final String TAG = "Home";
 
     private String mEventKey;
-    private boolean mIsRunning;
     private View mConnectionStateView;
     private ServerConnectionStatusBroadcastReceiver mSbr;
 
     @Override
     protected void onStart() {
         super.onStart();
-        mIsRunning = true;
         Log.i(TAG, "onStart");
     }
 
@@ -104,6 +102,13 @@ public class Home extends Activity implements ServerConnectionStateListener {
 
         setupUi(this, findViewById(android.R.id.content));
 
+        findViewById(R.id.restart).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AppContext.getServerConnection().restart();
+            }
+        });
+
         mConnectionStateView = findViewById(R.id.connection_state);
         mSbr = new ServerConnectionStatusBroadcastReceiver(this, this);
 
@@ -113,7 +118,6 @@ public class Home extends Activity implements ServerConnectionStateListener {
     @Override
     protected void onPause() {
         Log.i(TAG, "onPause");
-        mIsRunning = false;
         super.onPause();
     }
 
@@ -121,7 +125,6 @@ public class Home extends Activity implements ServerConnectionStateListener {
     protected void onResume() {
         Log.i(TAG, "onResume ");
         super.onResume();
-        mIsRunning = true;
     }
 
     @Override
@@ -174,13 +177,14 @@ public class Home extends Activity implements ServerConnectionStateListener {
 
     @Override
     public void serverConnected() {
-        Log.i(TAG, "Robot Connected");
+        Log.i(TAG, "Server Connected");
         mConnectionStateView.setBackgroundColor(ContextCompat.getColor(this, R.color.bright_green));
         stopBadConnectionAnimation();
     }
 
     @Override
     public void serverDisconnected() {
+        Log.i(TAG, "Server Disconnected");
         mConnectionStateView.setBackgroundColor(ContextCompat.getColor(this, R.color.bright_red));
         startBadConnectionAnimation();
         playAirhorn();

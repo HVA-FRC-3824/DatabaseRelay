@@ -1,7 +1,5 @@
 package frc3824.databaserelay.Comms;
 
-import com.google.gson.JsonObject;
-
 import org.json.JSONObject;
 
 import frc3824.databaserelay.Constants;

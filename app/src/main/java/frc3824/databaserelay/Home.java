@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -58,47 +60,8 @@ public class Home extends Activity implements ServerConnectionStateListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-        Database.getInstance();
 
         ((TextView)findViewById(R.id.version)).setText(String.format("Version: %s", Constants.VERSION));
-
-        final AutoCompleteTextView event_key = (AutoCompleteTextView)findViewById(R.id.event);
-
-        final SharedPreferences sp = getSharedPreferences(Constants.APP_DATA, Context.MODE_PRIVATE);
-        mEventKey = sp.getString(Constants.EVENT_KEY, "");
-        event_key.setText(mEventKey);
-
-        event_key.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if(Database.getEvents().contains(s.toString()))
-                {
-                    mEventKey = s.toString();
-                    Database.getInstance(mEventKey);
-                    SharedPreferences.Editor editor = sp.edit();
-                    editor.putString(Constants.EVENT_KEY, mEventKey);
-                    editor.commit();
-                    event_key.setBackground(null);
-                }
-                else
-                {
-                    event_key.setBackgroundColor(Color.RED);
-                }
-            }
-        });
-
-        ArrayList<String> events = new ArrayList<>(Database.getEvents());
-        ArrayAdapter<String> aa = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, events);
-        event_key.setAdapter(aa);
 
         setupUi(this, findViewById(android.R.id.content));
 

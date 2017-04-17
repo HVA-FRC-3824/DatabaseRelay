@@ -2,6 +2,8 @@ package frc3824.databaserelay;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,7 +22,7 @@ import frc3824.databaserelay.Comms.DataMessage;
  * Created: 3/26/17
  */
 
-public class NumberButton extends RelativeLayout implements View.OnClickListener {
+public class NumberButton extends RelativeLayout implements View.OnClickListener, TextWatcher {
     private TextView mTextView;
     private EditText mEditText;
     private ImageButton mDecrement;
@@ -47,6 +49,7 @@ public class NumberButton extends RelativeLayout implements View.OnClickListener
 
         mNumber = 0;
         mEditText.setText(String.valueOf(mNumber));
+        mEditText.addTextChangedListener(this);
 
         mDecrement.setOnClickListener(this);
         mIncrement.setOnClickListener(this);
@@ -57,7 +60,10 @@ public class NumberButton extends RelativeLayout implements View.OnClickListener
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.decrement:
-                mNumber --;
+                // Can't go negative
+                if(mNumber > 0) {
+                    mNumber--;
+                }
                 break;
             case R.id.increment:
                 mNumber ++;
@@ -75,5 +81,27 @@ public class NumberButton extends RelativeLayout implements View.OnClickListener
         }
 
         mEditText.setText(String.valueOf(mNumber));
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+    }
+
+    @Override
+    public void afterTextChanged(Editable s) {
+        int temp = 0;
+        try {
+            temp = Integer.parseInt(s.toString());
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        } finally {
+            mNumber = temp;
+        }
     }
 }

@@ -38,14 +38,6 @@
         android:layout_gravity="center_horizontal"
         android:textSize="20sp" />
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/restart"
-        android:text="Restart"
-        android:textSize="20sp"
-        android:textColor="@color/black"/>
-
     <frc3824.databaserelay.NumberButton
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -70,10 +62,19 @@
         android:background="@color/bright_blue"
         android:layout_marginBottom="4dp"/>
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/restart"
+        android:text="Restart"
+        android:textSize="20sp"
+        android:textColor="@color/black"/>
+
     <View
         android:layout_width="match_parent"
         android:layout_height="25dp"
         android:background="@color/bright_red"
         android:id="@+id/connection_state" />
+
 
 </LinearLayout>

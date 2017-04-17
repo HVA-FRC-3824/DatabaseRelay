@@ -1,23 +1,9 @@
 package frc3824.databaserelay;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.DialogFragment;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -26,23 +12,26 @@ import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.ScaleAnimation;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import java.util.ArrayList;
+import org.json.JSONObject;
 
+import frc3824.databaserelay.Comms.DataMessage;
+import frc3824.databaserelay.Comms.ResponseBroadcastReceiver;
+import frc3824.databaserelay.Comms.ResponseListener;
 import frc3824.databaserelay.Comms.ServerConnectionStateListener;
 import frc3824.databaserelay.Comms.ServerConnectionStatusBroadcastReceiver;
 
-public class Home extends Activity implements ServerConnectionStateListener {
+public class Home extends Activity implements ServerConnectionStateListener, ResponseListener, View.OnClickListener {
 
     private static final String TAG = "Home";
 
-    private String mEventKey;
     private View mConnectionStateView;
     private ServerConnectionStatusBroadcastReceiver mSbr;
+    private ResponseBroadcastReceiver mRbr;
 
     @Override
     protected void onStart() {
@@ -72,8 +61,12 @@ public class Home extends Activity implements ServerConnectionStateListener {
             }
         });
 
+        findViewById(R.id.final_run).setOnClickListener(this);
+
         mConnectionStateView = findViewById(R.id.connection_state);
         mSbr = new ServerConnectionStatusBroadcastReceiver(this, this);
+
+        mRbr = new ResponseBroadcastReceiver(this, this);
 
         Log.i(TAG, "onCreate");
     }
@@ -163,5 +156,30 @@ public class Home extends Activity implements ServerConnectionStateListener {
             }
         });
         mp.start();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.final_run:
+                JSONObject o = new JSONObject();
+                AppContext.getServerConnection().send(new DataMessage("final_run", o));
+                break;
+        }
+    }
+
+    @Override
+    public void matchCompleted(int match_number) {
+        Toast.makeText(this, String.format("Match %d completed", match_number), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void teamCompleted(int team_number) {
+        Toast.makeText(this, String.format("Team %d completed", team_number), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void finalRunCompleted() {
+        Toast.makeText(this, "Final run completed", Toast.LENGTH_SHORT).show();
     }
 }

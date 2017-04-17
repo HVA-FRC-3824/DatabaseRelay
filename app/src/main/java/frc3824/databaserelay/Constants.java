@@ -13,7 +13,7 @@ public interface Constants {
      - middle number is changed after events
      - left most number is changed after the season
      */
-    String VERSION = "2.3.1";
+    String VERSION = "2.3.2";
 
     interface Comms{
 
@@ -26,6 +26,9 @@ public interface Constants {
 
         interface Message_Type {
             String HEARTBEAT = "heartbeat";
+            String MATCH_COMPLETE = "match_complete";
+            String TEAM_COMPLETE = "team_complete";
+            String FINAL_RUN_COMPLETE = "final_run_complete";
         }
     }
 }

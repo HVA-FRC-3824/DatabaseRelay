@@ -20,7 +20,7 @@
         android:src="@drawable/previous_color"/>
 
     <EditText
-        android:layout_width="50dp"
+        android:layout_width="75dp"
         android:layout_height="wrap_content"
         android:id="@+id/number"
         android:textColor="@color/white"

@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import org.json.JSONException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,11 +68,38 @@ public class ServerConnection {
         private static final String TAG = "ReadThread";
 
         public void handleMessage(MessageBase message) {
-
+            Intent i;
             switch (message.getType()){
                 case Constants.Comms.Message_Type.HEARTBEAT:
                     m_last_heartbeat_rcvd_at = System.currentTimeMillis();
                     Log.i(TAG, "Heartbeat");
+                    break;
+                case Constants.Comms.Message_Type.MATCH_COMPLETE:
+                    i = new Intent(ResponseBroadcastReceiver.ACTION_MATCH_COMPLETED);
+                    try {
+                        i.putExtra("match_number", message.getData().getInt("match_number"));
+                    } catch (JSONException e){
+                        Log.e(TAG, "no match number for match completed");
+                    } finally {
+                        m_context.sendBroadcast(i);
+                    }
+                    Log.i(TAG, "Match complete");
+                    break;
+                case Constants.Comms.Message_Type.TEAM_COMPLETE:
+                    i = new Intent(ResponseBroadcastReceiver.ACTION_TEAM_COMPLETED);
+                    try {
+                        i.putExtra("team_number", message.getData().getInt("team_number"));
+                    } catch (JSONException e){
+                        Log.e(TAG, "no team number for team completed");
+                    } finally {
+                        m_context.sendBroadcast(i);
+                    }
+                    Log.i(TAG, "Team complete");
+                    break;
+                case Constants.Comms.Message_Type.FINAL_RUN_COMPLETE:
+                    i = new Intent(ResponseBroadcastReceiver.ACTION_FINAL_RUN_COMPLETED);
+                    m_context.sendBroadcast(i);
+                    Log.i(TAG, "Final run complete");
                     break;
             }
 
